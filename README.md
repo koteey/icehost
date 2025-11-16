@@ -5,7 +5,7 @@
 # Установка:
 1. Скачайте релизный архив.
 2. Распакуйте в удобное вам место.
-3. Установите зависимости: ```pip install vk-api requests pillow numpy pandas beautifulsoup4 scikit-learn tensorflow plyer openpyxl```
+3. Установите зависимости: ```pip install vk-api requests```
 4. В файле icehostdata.ini укажите токен авторизации из https://vkhost.github.io/ (выберите Kate Mobile), и ваш id.
 5. Запустите.
 6. Используйте.
@@ -490,6 +490,7 @@ def process_command(command, vk, peer_id, user_id, settings=None):
 
 
 Удачи в создании модулей! 🚀
+
 
 
 

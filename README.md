@@ -39,14 +39,36 @@
 
 
 
-# 📖 Полное руководство по созданию модулей для IceHost
+# 🚀 IceHost Modules v2.0 - Полное руководство по созданию модулей
 
-## 🎯 Основная структура модуля
+## 📖 Оглавление
+- [Новые возможности](#-новые-возможности)
+- [Структура модуля](#-структура-модуля)
+- [Типы обработчиков](#-типы-обработчиков)
+- [Примеры модулей](#-примеры-модулей)
+- [Утилиты и хелперы](#-утилиты-и-хелперы)
+- [Лучшие практики](#-лучшие-практики)
 
-Каждый модуль - это Python файл в папке `modules/` со следующей структурой:
+## 🆕 Новые возможности
 
-### 📁 Базовый шаблон модуля
+### 🔥 Обработка всех сообщений
+Модули теперь могут обрабатывать ЛЮБЫЕ сообщения, даже без префикса команды!
 
+### 👥 Реакция на сообщения других пользователей
+Модули могут реагировать на сообщения от любого пользователя в беседе.
+
+### 🔄 Обработка ответов
+Модули могут обрабатывать ответы на сообщения, включая вложения и файлы.
+
+### 📡 Обработка событий VK
+Модули могут реагировать на любые события LongPoll (онлайн, редактирование сообщений и т.д.)
+
+### ⚡ Перехват команд
+Модули могут перехватывать команды до основной обработки.
+
+## 📋 Структура модуля
+
+### Базовый шаблон
 ```python
 MODULE_INFO = {
     'name': 'Название модуля',
@@ -56,440 +78,308 @@ MODULE_INFO = {
 }
 
 MODULE_COMMANDS = [
-    'команда1 описание - что делает команда1',
-    'команда2 описание - что делает команда2'
+    'команда описание - что делает команда'
 ]
 
 def process_command(command, vk, peer_id, user_id, settings=None):
-    """
-    Основная функция обработки команд модуля
-    """
-    if command.startswith('команда1 '):
-        # Обработка команды1
-        return "Результат команды1"
-    
-    elif command == 'команда2':
-        # Обработка команды2
-        return "Результат команды2"
-    
-    # Если команда не обработана
+    """Обработка команд с префиксом"""
+    if command == 'команда':
+        return "Результат команды"
+    return None
+
+# 🔥 НОВЫЕ ОБРАБОТЧИКИ (опционально)
+def on_message_received(message_text, vk, peer_id, message_id, from_user_id, user_id, settings):
+    """Обработка ВСЕХ сообщений (даже без префикса)"""
+    return None  # Возвращает None или измененный текст
+
+def on_any_message(message_text, vk, peer_id, message_id, from_user_id, user_id, settings):
+    """Обработка сообщений от ЛЮБОГО пользователя"""
+    return None
+
+def on_reply_received(original_message_text, reply_text, vk, peer_id, message_id, from_user_id, replied_user_id, replied_message_id, attachments, user_id, settings):
+    """Обработка ответов на сообщения"""
+    return None
+
+def on_event(event_type, event_data, vk, user_id, settings):
+    """Обработка событий VK"""
+    return None
+
+def on_command_intercept(command, vk, peer_id, message_id, user_id, settings):
+    """Перехват команд до обработки"""
     return None
 ```
 
-## 🔧 Детальное описание компонентов
+## 🎯 Типы обработчиков
 
-### 1. `MODULE_INFO` - информация о модуле
-**Обязательные поля:**
+### 1. `process_command()` - Основная команда
 ```python
-MODULE_INFO = {
-    'name': 'Calculator',           # Название модуля
-    'version': '1.0',               # Версия модуля
-    'description': 'Математический калькулятор',  # Описание
-    'author': 'YourName',           # Автор модуля
-    # Дополнительные поля (опционально):
-    'website': 'https://example.com',  # Сайт автора
-    'dependencies': ['requests'],   # Зависимости
-    'permissions': ['messages']     # Требуемые разрешения
-}
-```
-
-### 2. `MODULE_COMMANDS` - список команд
-```python
-MODULE_COMMANDS = [
-    'calc выражение - вычисляет математическое выражение',
-    'math помощь - показывает справку',
-    'config настройки - управление настройками модуля'
-]
-```
-
-### 3. `process_command()` - главная функция
-**Параметры:**
-- `command` - текст команды (без префикса)
-- `vk` - объект VK API
-- `peer_id` - ID диалога
-- `user_id` - ID пользователя
-- `settings` - настройки бота (опционально)
-
-**Возвращает:**
-- `str` - текст для отправки
-- `None` - если команда не для этого модуля
-
-## 🚀 Примеры модулей
-
-### 📊 Пример 1: Простой модуль-приветствие
-
-```python
-MODULE_INFO = {
-    'name': 'Greeter',
-    'version': '1.0',
-    'description': 'Модуль приветствий и простых ответов',
-    'author': 'SnowCode'
-}
-
-MODULE_COMMANDS = [
-    'привет - поздороваться с ботом',
-    'время - показать текущее время',
-    'случайное число - сгенерировать случайное число'
-]
-
 def process_command(command, vk, peer_id, user_id, settings=None):
-    import random
-    import datetime
-    
-    if command == 'привет':
-        return f"👋 Привет! Рад тебя видеть!\nТвой ID: {user_id}"
-    
-    elif command == 'время':
-        current_time = datetime.datetime.now().strftime("%H:%M:%S")
-        return f"🕐 Текущее время: {current_time}"
-    
-    elif command == 'случайное число':
-        number = random.randint(1, 100)
-        return f"🎲 Случайное число: {number}"
-    
-    return None
-```
-
-### 🧮 Пример 2: Калькулятор с настройками
-
-```python
-MODULE_INFO = {
-    'name': 'Calculator',
-    'version': '2.0',
-    'description': 'Продвинутый калькулятор с настройками точности',
-    'author': 'SnowCode'
-}
-
-MODULE_COMMANDS = [
-    'calc выражение - вычислить математическое выражение',
-    'calc настройки - показать текущие настройки',
-    'math справка - подробная справка по калькулятору'
-]
-
-def get_calc_settings(settings):
-    """Получает настройки калькулятора"""
-    module_settings = settings.get('modules', {}).get('calculator', {}) if settings else {}
-    return {
-        'precision': module_settings.get('precision', 2),
-        'show_steps': module_settings.get('show_steps', False),
-        'angle_unit': module_settings.get('angle_unit', 'degrees')
-    }
-
-def process_command(command, vk, peer_id, user_id, settings=None):
-    calc_settings = get_calc_settings(settings)
-    precision = calc_settings['precision']
-    
-    if command.startswith('calc '):
-        expression = command[5:].strip()
-        
-        if expression == 'настройки':
-            return show_calc_settings(calc_settings)
-        
-        try:
-            # Безопасное вычисление
-            allowed_chars = set('0123456789+-*/.() ')
-            if all(c in allowed_chars for c in expression):
-                result = eval(expression)
-                
-                if isinstance(result, float):
-                    result = round(result, precision)
-                
-                response = f"🧮 **Результат:**\n"
-                response += f"• Выражение: `{expression}`\n"
-                response += f"• Ответ: `{result}`\n"
-                response += f"• Точность: {precision} знака\n"
-                
-                return response
-            else:
-                return "❌ Ошибка: Недопустимые символы"
-                
-        except ZeroDivisionError:
-            return "❌ Ошибка: Деление на ноль"
-        except Exception as e:
-            return f"❌ Ошибка вычисления: {str(e)}"
-    
-    elif command == 'math справка':
-        return show_calc_help(calc_settings)
-    
-    return None
-
-def show_calc_settings(settings):
-    """Показывает текущие настройки калькулятора"""
-    return f"""
-⚙️ **Настройки калькулятора:**
-
-• Точность: {settings['precision']} знака
-• Показ шагов: {'✅' if settings['show_steps'] else '❌'}
-• Единицы углов: {settings['angle_unit']}
-
-💡 Для изменения используйте:
-`.config установить calculator precision 4`
-`.config установить calculator show_steps true`
-"""
-
-def show_calc_help(settings):
-    """Показывает справку по калькулятору"""
-    return f"""
-🧮 **Калькулятор - справка**
-
-**Основные операции:**
-• Сложение: `calc 5+3`
-• Вычитание: `calc 10-4`
-• Умножение: `calc 6*7`
-• Деление: `calc 15/3`
-• Скобки: `calc (2+3)*4`
-
-**Примеры:**
-• `calc 2+2*2` = 6
-• `calc (2+2)*2` = 8
-• `calc 10/3` = 3.33
-
-**Текущая точность:** {settings['precision']} знака
-"""
-```
-
-### 🌐 Пример 3: Модуль для работы с интернетом
-
-```python
-MODULE_INFO = {
-    'name': 'Internet Tools',
-    'version': '1.0',
-    'description': 'Инструменты для работы с интернетом',
-    'author': 'SnowCode',
-    'dependencies': ['requests']
-}
-
-MODULE_COMMANDS = [
-    'ping сайт - проверить доступность сайта',
-    'ip информация - показать IP информацию',
-    'погода город - узнать погоду'
-]
-
-def process_command(command, vk, peer_id, user_id, settings=None):
-    import requests
-    import socket
-    
-    if command.startswith('ping '):
-        website = command[5:].strip()
-        return ping_website(website)
-    
-    elif command == 'ip информация':
-        return get_ip_info()
-    
-    elif command.startswith('погода '):
-        city = command[7:].strip()
-        return get_weather(city)
-    
-    return None
-
-def ping_website(website):
-    """Проверяет доступность сайта"""
-    try:
-        if not website.startswith(('http://', 'https://')):
-            website = 'https://' + website
-        
-        response = requests.get(website, timeout=10)
-        
-        if response.status_code == 200:
-            return f"✅ Сайт {website} доступен\n⏱️ Ответ: {response.elapsed.total_seconds():.2f}с"
-        else:
-            return f"⚠️ Сайт {website} отвечает с кодом {response.status_code}"
-            
-    except requests.exceptions.RequestException as e:
-        return f"❌ Ошибка подключения к {website}: {str(e)}"
-
-def get_ip_info():
-    """Получает информацию о IP"""
-    try:
-        hostname = socket.gethostname()
-        local_ip = socket.gethostbyname(hostname)
-        
-        # Получаем внешний IP
-        external_ip = requests.get('https://api.ipify.org', timeout=5).text
-        
-        return f"🌐 **IP информация:**\n• Локальный IP: `{local_ip}`\n• Внешний IP: `{external_ip}`\n• Имя хоста: `{hostname}`"
-        
-    except Exception as e:
-        return f"❌ Ошибка получения IP информации: {str(e)}"
-
-def get_weather(city):
-    """Получает погоду для города"""
-    try:
-        # Здесь можно подключить любой weather API
-        # Например, OpenWeatherMap
-        return f"🌤️ Функция погоды для {city} в разработке..."
-        
-    except Exception as e:
-        return f"❌ Ошибка получения погоды: {str(e)}"
-```
-
-## ⚙️ Работа с настройками модуля
-
-### 📋 Получение настроек
-```python
-def get_module_settings(settings, module_name):
-    """Безопасное получение настроек модуля"""
-    if settings and 'modules' in settings and module_name in settings['modules']:
-        return settings['modules'][module_name]
-    return {}
-
-# Использование:
-module_settings = get_module_settings(settings, 'calculator')
-precision = module_settings.get('precision', 2)
-theme = module_settings.get('theme', 'default')
-```
-
-### 🎛️ Пример модуля с настройками
-
-```python
-MODULE_INFO = {
-    'name': 'Configurable Module',
-    'version': '1.0',
-    'description': 'Модуль с настраиваемыми параметрами',
-    'author': 'SnowCode'
-}
-
-MODULE_COMMANDS = [
-    'test - тестовая команда',
-    'config - показать настройки'
-]
-
-def process_command(command, vk, peer_id, user_id, settings=None):
-    # Получаем настройки модуля
-    module_settings = get_module_settings(settings, 'configurable_module')
-    
+    # command - текст команды без префикса
+    # vk - объект VK API
+    # peer_id - ID диалога
+    # user_id - ID пользователя
+    # settings - настройки бота
     if command == 'test':
-        color = module_settings.get('color', 'синий')
-        size = module_settings.get('size', 'medium')
-        enabled = module_settings.get('enabled', True)
-        
-        return f"🎨 Тест модуля:\n• Цвет: {color}\n• Размер: {size}\n• Включен: {'✅' if enabled else '❌'}"
-    
-    elif command == 'config':
-        return show_module_config(module_settings)
-    
+        return "✅ Тест выполнен!"
+    return None
+```
+
+### 2. `on_message_received()` - Все сообщения
+```python
+def on_message_received(message_text, vk, peer_id, message_id, from_user_id, user_id, settings):
+    # Обрабатывает ЛЮБОЕ сообщение
+    if "привет" in message_text.lower():
+        vk.messages.send(peer_id=peer_id, message="И тебе привет!", random_id=0)
+    return None  # Не изменяем сообщение
+```
+
+### 3. `on_any_message()` - Сообщения других пользователей
+```python
+def on_any_message(message_text, vk, peer_id, message_id, from_user_id, user_id, settings):
+    # Обрабатывает сообщения от ЛЮБОГО пользователя
+    if from_user_id != user_id:  # Только не от владельца
+        if "бот" in message_text.lower():
+            vk.messages.send(peer_id=peer_id, message="Я здесь! 🎯", random_id=0)
+    return None
+```
+
+### 4. `on_reply_received()` - Ответы на сообщения
+```python
+def on_reply_received(original_message_text, reply_text, vk, peer_id, message_id, from_user_id, replied_user_id, replied_message_id, attachments, user_id, settings):
+    # Обрабатывает ответы
+    if original_message_text == ".dm":
+        # Ответ на команду установки модуля
+        for attachment in attachments:
+            if attachment['type'] == 'doc' and attachment['doc']['ext'] == 'py':
+                return "📦 Обнаружен файл модуля!"
+    return None
+```
+
+### 5. `on_event()` - События VK
+```python
+from vk_api.longpoll import VkEventType
+
+def on_event(event_type, event_data, vk, user_id, settings):
+    # Обрабатывает события LongPoll
+    if event_type == VkEventType.USER_ONLINE:
+        user_id = event_data['user_id']
+        vk.messages.send(peer_id=user_id, message="Привет! Вижу ты онлайн 🌟", random_id=0)
+    return None
+```
+
+### 6. `on_command_intercept()` - Перехват команд
+```python
+def on_command_intercept(command, vk, peer_id, message_id, user_id, settings):
+    # Перехватывает команды до основной обработки
+    if command == 'secret':
+        return "🔒 Эта команда перехвачена!"
+    return None  # Позволяет продолжить обычную обработку
+```
+
+## 💡 Примеры модулей
+
+### Пример 1: Модуль авто-ответов
+```python
+MODULE_INFO = {
+    'name': 'Auto Responder',
+    'version': '1.0',
+    'description': 'Автоматические ответы на сообщения',
+    'author': 'IceHost Team'
+}
+
+MODULE_COMMANDS = [
+    'ar список - показать авто-ответы',
+    'ar добавить <триггер> <ответ> - добавить авто-ответ'
+]
+
+auto_responses = {
+    'привет': 'И тебе привет! 👋',
+    'как дела': 'Отлично! А у тебя? 😊',
+    'пока': 'До встречи! 👋'
+}
+
+def on_any_message(message_text, vk, peer_id, message_id, from_user_id, user_id, settings):
+    # Авто-ответы на сообщения
+    message_lower = message_text.lower()
+    for trigger, response in auto_responses.items():
+        if trigger in message_lower:
+            vk.messages.send(peer_id=peer_id, message=response, random_id=0)
+            break
     return None
 
-def get_module_settings(settings, module_name):
-    """Безопасное получение настроек модуля"""
-    if settings and 'modules' in settings and module_name in settings['modules']:
-        return settings['modules'][module_name]
-    return {}
-
-def show_module_config(settings):
-    """Показывает конфигурацию модуля"""
-    config_text = "⚙️ **Настройки модуля:**\n"
-    
-    if settings:
-        for key, value in settings.items():
-            config_text += f"• {key}: `{value}`\n"
-    else:
-        config_text += "⚠️ Настроек нет\n"
-    
-    config_text += "\n💡 **Команды управления:**\n"
-    config_text += "`.config установить configurable_module color red`\n"
-    config_text += "`.config установить configurable_module size large`\n"
-    config_text += "`.config установить configurable_module enabled false`"
-    
-    return config_text
+def process_command(command, vk, peer_id, user_id, settings=None):
+    if command == 'ar список':
+        response = "📋 Авто-ответы:\n" + "\n".join([f"• {k} → {v}" for k, v in auto_responses.items()])
+        return response
+    return None
 ```
 
-## 🔧 Работа с VK API
+### Пример 2: Модуль модерации
+```python
+MODULE_INFO = {
+    'name': 'Chat Moderator',
+    'version': '1.0', 
+    'description': 'Модерация чата и фильтрация контента',
+    'author': 'IceHost Team'
+}
 
-### 💬 Отправка сообщений
+banned_words = ['спам', 'оскорбление', 'реклама']
+
+def on_any_message(message_text, vk, peer_id, message_id, from_user_id, user_id, settings):
+    # Фильтрация запрещенных слов
+    for word in banned_words:
+        if word in message_text.lower():
+            try:
+                # Удаляем сообщение
+                vk.messages.delete(
+                    peer_id=peer_id,
+                    message_ids=message_id,
+                    delete_for_all=1
+                )
+                # Предупреждение пользователю
+                vk.messages.send(
+                    peer_id=peer_id,
+                    message=f"⚠️ Сообщение удалено. Не используйте запрещенные слова.",
+                    random_id=0
+                )
+            except:
+                pass
+            break
+    return None
+```
+
+### Пример 3: Модуль уведомлений
+```python
+MODULE_INFO = {
+    'name': 'Notifier',
+    'version': '1.0',
+    'description': 'Уведомления о событиях',
+    'author': 'IceHost Team'
+}
+
+def on_event(event_type, event_data, vk, user_id, settings):
+    # Уведомления о событиях
+    if event_type == VkEventType.USER_ONLINE:
+        user_info = vk.users.get(user_ids=[event_data['user_id']])[0]
+        user_name = f"{user_info['first_name']} {user_info['last_name']}"
+        
+        vk.messages.send(
+            peer_id=user_id,  # Лично владельцу
+            message=f"👤 {user_name} сейчас онлайн!",
+            random_id=0
+        )
+    
+    elif event_type == VkEventType.MESSAGE_EDIT:
+        vk.messages.send(
+            peer_id=user_id,
+            message=f"✏️ Сообщение отредактировано в беседе {event_data['peer_id']}",
+            random_id=0
+        )
+    
+    return None
+```
+
+## 🛠️ Утилиты и хелперы
+
+### Доступ к утилитам бота
 ```python
 def process_command(command, vk, peer_id, user_id, settings=None):
-    if command == 'отправить тест':
-        try:
-            # Отправка сообщения через VK API
-            vk.messages.send(
-                peer_id=peer_id,
-                message="📨 Это тестовое сообщение!",
-                random_id=0
-            )
-            return "✅ Сообщение отправлено!"
-        except Exception as e:
-            return f"❌ Ошибка отправки: {str(e)}"
+    # Доступ к утилитам через settings
+    utils = settings.get('_utils', {})
+    
+    uptime = utils.get('get_uptime', lambda: "Недоступно")()
+    latency = utils.get('measure_network_latency', lambda vk: "Недоступно")(vk)
+    
+    return f"⏱️ Аптайм: {uptime}\n🌐 Пинг: {latency:.2f}ms"
 ```
 
-### 👤 Получение информации о пользователе
+### Доступные утилиты:
+- `get_uptime()` - время работы бота
+- `measure_network_latency(vk)` - задержка до API VK  
+- `get_connection_quality(latency)` - качество соединения
+- `get_message_sender(vk, peer_id, message_id, user_id)` - определение отправителя
+- `download_file(url, filename)` - скачивание файлов
+- `save_settings(settings)` - сохранение настроек
+- `load_settings()` - загрузка настроек
+- `module_log(module_name, message)` - логирование
+
+### Логирование для модулей
 ```python
-def get_user_info(vk, user_id):
-    """Получает информацию о пользователе"""
+def process_command(command, vk, peer_id, user_id, settings=None):
+    utils = settings.get('_utils', {})
+    log = utils.get('module_log', print)
+    
+    log("MyModule", f"Выполнена команда: {command}")
+    return "Команда выполнена!"
+```
+
+## ✅ Лучшие практики
+
+### 1. Обработка ошибок
+```python
+def process_command(command, vk, peer_id, user_id, settings=None):
     try:
-        user_info = vk.users.get(user_ids=user_id, fields='first_name,last_name,online')[0]
-        return user_info
+        # Ваш код
+        return "✅ Успех!"
     except Exception as e:
+        return f"❌ Ошибка: {str(e)}"
+```
+
+### 2. Проверка прав доступа
+```python
+def on_any_message(message_text, vk, peer_id, message_id, from_user_id, user_id, settings):
+    # Только для владельца бота
+    if from_user_id != user_id:
         return None
-
-def process_command(command, vk, peer_id, user_id, settings=None):
-    if command == 'моя информация':
-        user_info = get_user_info(vk, user_id)
-        if user_info:
-            return f"👤 **Ваш профиль:**\n• Имя: {user_info['first_name']}\n• Фамилия: {user_info['last_name']}\n• Онлайн: {'✅' if user_info.get('online') else '❌'}"
-        else:
-            return "❌ Не удалось получить информацию"
+    
+    # Ваш код для владельца
+    return None
 ```
 
-## 🛠️ Лучшие практики
-
-### 1. **Обработка ошибок**
+### 3. Использование настроек
 ```python
 def process_command(command, vk, peer_id, user_id, settings=None):
-    try:
-        # Ваш код здесь
-        if command == 'тест':
-            return "✅ Успех!"
-        
-        return None
-    except Exception as e:
-        return f"❌ Ошибка в модуле: {str(e)}"
+    # Получение настроек модуля
+    module_settings = settings.get('modules', {}).get('my_module', {})
+    option = module_settings.get('option', 'значение по умолчанию')
+    
+    return f"Настройка: {option}"
 ```
 
-### 2. **Валидация входных данных**
+### 4. Совместимость версий
 ```python
-def safe_eval(expression):
-    """Безопасное вычисление выражений"""
-    allowed_chars = set('0123456789+-*/.() ')
-    return all(c in allowed_chars for c in expression)
+# Поддержка старых версий
+def on_message_received(message_text, vk, peer_id, message_id, from_user_id, user_id, settings):
+    # Работает с разным количеством аргументов
+    return None
 
-def process_command(command, vk, peer_id, user_id, settings=None):
-    if command.startswith('calc '):
-        expression = command[5:].strip()
-        
-        if not safe_eval(expression):
-            return "❌ Ошибка: Недопустимые символы в выражении"
-        
-        # Дальнейшая обработка...
+# Или минимальная версия
+def on_message_received(message_text, vk, peer_id, user_id):
+    # Только основные параметры
+    return None
 ```
 
-### 3. **Логирование**
-```python
-import logging
+## 🚀 Установка модулей
 
-def process_command(command, vk, peer_id, user_id, settings=None):
-    print(f"[Модуль] Команда: {command} от {user_id}")
-    # Обработка команды...
-```
+1. Создайте файл в папке `modules/your_module.py`
+2. Напишите код по шаблону выше
+или:
+1. Отправьте файл в диалог с ботом
+2. Установите командой: `.dm` (ответом на файл)
 
-## 📦 Установка модуля
+## 📚 Полезные команды
 
-1. **Создайте файл** в папке `modules/your_module.py`
-2. **Напишите код** по шаблону выше
-3. **Отправьте файл** в диалог с ботом
-4. **Установите командой:** `.dm` (ответом на файл)
-
-## 🎉 Поздравляю!
-
-Теперь вы знаете как создавать модули для IceHost. Начните с простых модулей и постепенно переходите к более сложным! 
-
-**Полезные команды для тестирования:**
 - `.modules` - список установленных модулей
-- `.config список` - все настройки модулей
+- `.config получить имя_модуля` - настройки модуля
+- `.config установить имя_модуля параметр значение` - изменить настройки
 - `.delm имя_модуля` - удалить модуль
 
+---
 
-Удачи в создании модулей! 🚀
+**IceHost Modules v2.0** открывает безграничные возможности для создания интеллектуальных и интерактивных модулей! 🎉
+
+*Создавайте, экспериментируйте, делитесь своими модулями с сообществом!* 🌟
+
 
 
 

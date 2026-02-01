@@ -1,6 +1,6 @@
 # Icers v4.0 - Юзербот для VK
 
-#![Version](https://img.shields.io/badge/version-4.0-blue)
+![Version](https://img.shields.io/badge/version-4.0-blue)
 
 
 **Мощный юзербот для VK с продвинутыми возможностями обработки медиа, системой модулей и ролевым доступом. Полная работоспособность не гарантируется.**
@@ -469,4 +469,5 @@ utils['module_log'](name, message)       # Логирование модуля
 ---
 
 *Разработано с ❤️ командой SnowCode*
+
 

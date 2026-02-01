@@ -1,0 +1,21 @@
+# IceHost 2.0 — requirements.txt
+# Установка: pip install -r requirements.txt
+
+# Основные зависимости
+vk_api>=11.9.0
+requests>=2.28.0
+
+# Медиа-обработка
+Pillow>=9.0.0
+pydub>=0.25.0
+numpy>=1.20.0
+
+# QR коды
+qrcode[pil]>=7.4.0
+opencv-python>=4.5.0  # Для декодирования (qrscan)
+
+# Логирование
+colorama>=0.4.6
+
+# Дополнительные утилиты
+python-dotenv>=0.21.0  # Для .env файлов (опционально)
